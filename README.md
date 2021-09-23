@@ -1,2 +1,1 @@
 # GB Go backend cource
-
