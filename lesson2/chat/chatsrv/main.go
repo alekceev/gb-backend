@@ -36,7 +36,11 @@ func handleConn(conn net.Conn) {
 	ch := make(chan string)
 	go clientWriter(conn, ch)
 
-	who := conn.RemoteAddr().String()
+	stdin := bufio.NewScanner(conn)
+	ch <- "What is your name?"
+	stdin.Scan()
+	who := stdin.Text()
+
 	ch <- "You are " + who
 	messages <- who + " has arrived"
 	entering <- ch

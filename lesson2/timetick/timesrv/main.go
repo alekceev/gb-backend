@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"log"
@@ -10,6 +11,8 @@ import (
 	"sync"
 	"time"
 )
+
+var console = make(chan string)
 
 func main() {
 	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -23,6 +26,24 @@ func main() {
 	}
 	wg := &sync.WaitGroup{}
 	log.Println("im started!")
+
+	// читаем с stdin в канал
+	go func() {
+		stdin := bufio.NewReader(os.Stdin)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			message, err := stdin.ReadString('\n')
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			console <- message
+		}
+	}()
 
 	go func() {
 		for {
@@ -60,6 +81,8 @@ func handleConn(ctx context.Context, conn net.Conn, wg *sync.WaitGroup) {
 			return
 		case t := <-tck.C:
 			fmt.Fprintf(conn, "now: %s\n", t)
+		case m := <-console:
+			fmt.Fprintf(conn, "admin: %s\n", m)
 		}
 	}
 }
