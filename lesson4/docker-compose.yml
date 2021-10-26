@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+
+  registry:
+    image: registry:2
+    container_name: registry
+    ports:
+      - 5000:5000
+    restart: always
+    networks:
+      - cdnnet
+
+  cdn:
+    image: 127.0.0.1:5000/cdn:latest
+    container_name: cdn
+    build: .
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./upload:/app/upload
+    depends_on:
+      - registry
+    networks:
+      - cdnnet
+
+networks:
+  cdnnet:
